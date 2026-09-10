@@ -1,2 +1,4 @@
 # DatabaseFromScratch
-Disgusting Projects where everything is in one file.
+Disgusting Project where everything is in one file.
+
+This is a database based on sqlite. Thank you @cstack for the tutorial, many thanks to him. Enjoy!
