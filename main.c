@@ -10,8 +10,6 @@
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
 #define TABLE_MAX_PAGES 100
 
-// --- Type Definitions (Moved up so constants can use them) ---
-
 typedef struct {
 	uint32_t id;
 	char username[COLUMN_USERNAME_SIZE];
@@ -55,10 +53,8 @@ typedef struct {
 	ssize_t input_length;
 } InputBuffer;
 
-// --- Sizing and Offset Constants ---
-
 const uint32_t ID_SIZE = size_of_attribute(Row, id);
-const uint32_t USERNAME_SIZE = size_of_attribute(Row, username); // Fixed typo: attrubute -> attribute
+const uint32_t USERNAME_SIZE = size_of_attribute(Row, username); 
 const uint32_t EMAIL_SIZE = size_of_attribute(Row, email);
 const uint32_t ID_OFFSET = 0;
 const uint32_t USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
@@ -66,9 +62,7 @@ const uint32_t EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
 const uint32_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 const uint32_t PAGE_SIZE = 4096;
 const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
-const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES; // Renamed to match usage
-
-// --- Core Helper Functions ---
+const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES; 
 
 void print_row(Row* row) {
 	printf("(%d, %s, %s)\n", row->id, row->username, row->email);
@@ -93,11 +87,11 @@ void serialize_row(Row* source, void* destination) {
 
 void deserialize_row(void* source, Row* destination) {
 	memcpy(&(destination->id), source + ID_OFFSET, ID_SIZE);
-	memcpy(&(destination->username), source + USERNAME_OFFSET, USERNAME_SIZE); // Fixed typo: USERNMAE
+	memcpy(&(destination->username), source + USERNAME_OFFSET, USERNAME_SIZE); 
 	memcpy(&(destination->email), source + EMAIL_OFFSET, EMAIL_SIZE);
 }
 
-MetaCommandResult do_meta_command(InputBuffer* input_buffer, Table* table) { // Added table matching signature
+MetaCommandResult do_meta_command(InputBuffer* input_buffer, Table* table) { 
 	if (strcmp(input_buffer->buffer, ".exit") == 0) {
 		exit(EXIT_SUCCESS);
 	}
@@ -121,7 +115,6 @@ void print_prompt() {
 PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement) {
 	if (strncmp(input_buffer->buffer, "insert", 6) == 0) {
 		statement->type = STATEMENT_INSERT;
-		// Fixed typo: statement->row_to_insert_email -> statement->row_to_insert.email
 		int args_assigned = sscanf(input_buffer->buffer, "insert %d %s %s", 
 			&(statement->row_to_insert.id), 
 			statement->row_to_insert.username, 
@@ -139,7 +132,7 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
 }
 
 ExecuteResult execute_insert(Statement* statement, Table* table) {
-	if (table->num_rows >= TABLE_MAX_ROWS) { // Fixed typo: tbale -> table, TABLE_MAX_SIZE -> TABLE_MAX_ROWS
+	if (table->num_rows >= TABLE_MAX_ROWS) {
 		return EXECUTE_TABLE_FULL;
 	}
 
@@ -150,7 +143,7 @@ ExecuteResult execute_insert(Statement* statement, Table* table) {
 	return EXECUTE_SUCCESS;
 }
 
-ExecuteResult execute_select(Statement* statement, Table* table) { // Fixed typo: Statment
+ExecuteResult execute_select(Statement* statement, Table* table) {
 	Row row;
 	for (uint32_t i = 0; i < table->num_rows; i++) {
 		deserialize_row(row_slot(table, i), &row);
@@ -162,7 +155,7 @@ ExecuteResult execute_select(Statement* statement, Table* table) { // Fixed typo
 ExecuteResult execute_statement(Statement* statement, Table* table) {
 	switch(statement->type) {
 		case (STATEMENT_INSERT):
-			return execute_insert(statement, table); // Fixed logic: routing execution appropriately
+			return execute_insert(statement, table);
 		case (STATEMENT_SELECT):
 			return execute_select(statement, table);
 	}
@@ -179,7 +172,7 @@ Table* new_table() {
 }
 
 void free_table(Table* table) {
-	for (int i = 0; i < TABLE_MAX_PAGES; i++) { // Fixed logic loop boundary
+	for (int i = 0; i < TABLE_MAX_PAGES; i++) { 
 		if (table->pages[i]) {
 			free(table->pages[i]);
 		}
@@ -203,8 +196,6 @@ void close_input_buffer(InputBuffer* input_buffer) {
 	free(input_buffer->buffer);
 	free(input_buffer);
 }
-
-// --- Main Runner ---
 
 int main(int argc, char* argv[]) {
   Table* table = new_table();
